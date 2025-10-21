@@ -1,0 +1,22 @@
+# 核心依赖 - 简化版本
+fastapi
+uvicorn[standard]
+python-multipart
+websockets
+langchain
+openai
+pydantic
+pydantic-settings
+python-dotenv
+aiosqlite
+edge-tts
+pydub
+pyautogui
+psutil
+pywin32
+Pillow
+pyperclip
+requests
+aiohttp
+tenacity
+loguru
