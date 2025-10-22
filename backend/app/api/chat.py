@@ -101,10 +101,12 @@ async def get_history(session_id: str, limit: int = 50):
 
 
 class ConnectionManager:
-    """WebSocket连接管理器"""
+    """WebSocket连接管理器 - 性能优化版"""
     
     def __init__(self):
         self.active_connections: List[WebSocket] = []
+        self.heartbeat_interval = 30  # 心跳间隔（秒）
+        self.message_queue = {}  # 消息队列，支持优先级处理
     
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
