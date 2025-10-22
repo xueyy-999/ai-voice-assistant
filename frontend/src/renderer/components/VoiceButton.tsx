@@ -123,6 +123,31 @@ export const VoiceButton: React.FC = () => {
     setRecording(false);
   };
 
+  // 优化：支持键盘快捷键（空格键）
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !isRecording && isInitialized) {
+        e.preventDefault();
+        handleMouseDown();
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && isRecording) {
+        e.preventDefault();
+        handleMouseUp();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [isRecording, isInitialized]);
+
   return (
     <div className="flex flex-col items-center gap-4">
       {/* 音量指示器 */}
@@ -167,14 +192,21 @@ export const VoiceButton: React.FC = () => {
         </svg>
       </button>
 
-      {/* 提示文字 */}
+      {/* 提示文字 - 优化：添加快捷键提示 */}
       <p className="text-sm text-gray-600">
         {!isInitialized
-          ? '正在初始化...'
+          ? '⏳ 正在初始化...'
           : isRecording
           ? '🎤 正在录音...'
-          : '按住说话'}
+          : '按住说话 或 按住空格键'}
       </p>
+      
+      {/* 优化：添加状态提示 */}
+      {!isInitialized && (
+        <p className="text-xs text-gray-400 mt-2">
+          正在请求麦克风权限...
+        </p>
+      )}
     </div>
   );
 };
