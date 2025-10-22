@@ -51,9 +51,14 @@ async def recognize_voice(audio: UploadFile = File(...)):
             confidence=result.confidence
         )
     
+    except HTTPException:
+        raise
+    except ValueError as e:
+        logger.error(f"语音识别参数错误: {e}")
+        raise HTTPException(status_code=400, detail=f"音频格式不支持: {str(e)}")
     except Exception as e:
         logger.error(f"语音识别API错误: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="语音识别服务暂时不可用，请稍后重试")
 
 
 @router.post("/synthesize", response_model=SynthesizeResponse)
@@ -76,9 +81,14 @@ async def synthesize_voice(request: SynthesizeRequest):
             format=result.get("format", "mp3")
         )
     
+    except HTTPException:
+        raise
+    except ValueError as e:
+        logger.error(f"语音合成参数错误: {e}")
+        raise HTTPException(status_code=400, detail=f"文本内容无效: {str(e)}")
     except Exception as e:
         logger.error(f"语音合成API错误: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="语音合成服务暂时不可用，请稍后重试")
 
 
 @router.get("/voices")
