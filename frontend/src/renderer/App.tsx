@@ -13,12 +13,13 @@ function App() {
   const [activeTab, setActiveTab] = useState<'chat' | 'flow'>('chat');
 
   useEffect(() => {
-    // 初始化连接
-    initApp();
-
-    // 监听WS事件以更新连接状态
+    // 先注册WS事件，再发起连接，避免丢失ws_open事件
     wsClient.on('ws_open', () => setConnected(true));
     wsClient.on('ws_close', () => setConnected(false));
+    wsClient.connect();
+
+    // 并行初始化其它数据（健康检查/系统信息），不阻塞WS连接
+    initApp();
 
     return () => {
       wsClient.disconnect();
