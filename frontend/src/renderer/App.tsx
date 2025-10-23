@@ -140,6 +140,45 @@ function App() {
           <div className="flex flex-col">
             <div className="bg-white rounded-2xl shadow-lg p-8 flex-1 flex flex-col items-center justify-center">
               <VoiceButton />
+              
+              {/* 文字输入框 */}
+              <div className="mt-6 w-full">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    placeholder="或者在这里输入指令..."
+                    className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                        const text = e.currentTarget.value.trim();
+                        wsClient.send({
+                          type: 'text',
+                          content: text,
+                        });
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={(e) => {
+                      const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                      if (input && input.value.trim()) {
+                        wsClient.send({
+                          type: 'text',
+                          content: input.value.trim(),
+                        });
+                        input.value = '';
+                      }
+                    }}
+                    className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-medium"
+                  >
+                    发送
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400 mt-2 text-center">
+                  输入后按回车或点击发送按钮
+                </p>
+              </div>
 
               {/* 功能说明 */}
               <div className="mt-12 w-full space-y-3">
