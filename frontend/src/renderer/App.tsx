@@ -16,6 +16,10 @@ function App() {
     // 初始化连接
     initApp();
 
+    // 监听WS事件以更新连接状态
+    wsClient.on('ws_open', () => setConnected(true));
+    wsClient.on('ws_close', () => setConnected(false));
+
     return () => {
       wsClient.disconnect();
     };
@@ -34,7 +38,7 @@ function App() {
 
       // 连接WebSocket
       await wsClient.connect();
-      setConnected(true);
+      setConnected(wsClient.isConnected());
 
       // 监听消息
       wsClient.on('pong', (msg) => {

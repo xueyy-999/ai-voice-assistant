@@ -9,18 +9,26 @@ export class WebSocketClient {
   private url: string;
   private handlers: Map<string, MessageHandler[]> = new Map();
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 3000;
+  private maxReconnectAttempts = Number.MAX_SAFE_INTEGER; // 无限重连
+  private reconnectDelay = 2000;
 
   constructor(url?: string) {
+    const host = location.hostname;
+    const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+    const defaultWs = `${protocol}://${host}:8000/api/chat/ws`;
     const configured = (globalThis as any).__WS_URL__
       || (import.meta as any).env?.VITE_WS_URL
-      || 'ws://localhost:8000/api/chat/ws';
+      || defaultWs;
     this.url = url || configured;
   }
 
+  private emit(type: string, payload?: any) {
+    const handlers = this.handlers.get(type) || [];
+    handlers.forEach((handler) => handler(payload));
+  }
+
   connect(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       try {
         this.ws = new WebSocket(this.url);
 
@@ -28,6 +36,7 @@ export class WebSocketClient {
           console.log('✅ WebSocket connected');
           this.reconnectAttempts = 0;
           this.startHeartbeat();
+          this.emit('ws_open');
           resolve();
         };
 
@@ -42,15 +51,18 @@ export class WebSocketClient {
 
         this.ws.onerror = (error) => {
           console.error('❌ WebSocket error:', error);
-          reject(error);
+          // 出错也尝试重连，不reject以便后续能够成功后resolve
+          this.attemptReconnect();
         };
 
         this.ws.onclose = () => {
           console.log('👋 WebSocket disconnected');
+          this.emit('ws_close');
           this.attemptReconnect();
         };
       } catch (error) {
-        reject(error);
+        console.error('❌ WebSocket connect failed:', error);
+        this.attemptReconnect();
       }
     });
   }
@@ -99,17 +111,18 @@ export class WebSocketClient {
   private startHeartbeat() {
     this.heartbeatInterval = setInterval(() => {
       this.send({ type: 'ping', data: {} });
-    }, 30000); // 每30秒心跳
+    }, 15000); // 每15秒心跳
   }
 
   private attemptReconnect() {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.reconnectAttempts++;
-      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
-      setTimeout(() => {
-        this.connect().catch(console.error);
-      }, this.reconnectDelay);
-    }
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) return;
+    this.reconnectAttempts++;
+    console.log(`Attempting to reconnect (${this.reconnectAttempts})...`);
+    setTimeout(() => {
+      this.connect().catch(() => {
+        // 忽略异常，继续由内部逻辑重连
+      });
+    }, this.reconnectDelay);
   }
 
   disconnect() {
