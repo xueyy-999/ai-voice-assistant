@@ -12,6 +12,10 @@ from app.services.ai.agent_service import agent_service
 from app.services.ai.context_manager import context_manager
 
 router = APIRouter()
+@router.get("/status")
+async def ws_status():
+    """WebSocket连接状态"""
+    return {"connections": len(manager.active_connections)}
 
 
 class SendMessageRequest(BaseModel):
@@ -129,6 +133,14 @@ async def websocket_endpoint(websocket: WebSocket):
     """
     WebSocket连接 - 支持实时Agent执行
     """
+    # 记录握手来源信息，帮助排查跨域/地址问题
+    try:
+        origin = websocket.headers.get("origin")
+        client = getattr(websocket, "client", None)
+        logger.info(f"🔌 WS handshake from {client}, origin={origin}")
+    except Exception:
+        pass
+
     await manager.connect(websocket)
     session_id = str(uuid.uuid4())
     

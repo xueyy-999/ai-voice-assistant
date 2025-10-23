@@ -39,9 +39,8 @@ function App() {
       console.log('📊 System info:', systemInfo);
       setSystemInfo(systemInfo);
 
-      // 连接WebSocket
-      await wsClient.connect();
-      setConnected(wsClient.isConnected());
+      // 连接WebSocket（不阻塞初始化）
+      wsClient.connect();
 
       // 监听消息
       wsClient.on('pong', (msg) => {
