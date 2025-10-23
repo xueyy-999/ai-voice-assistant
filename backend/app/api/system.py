@@ -9,6 +9,17 @@ import psutil
 router = APIRouter()
 
 
+@router.get("/health")
+async def health_check():
+    """
+    健康检查
+    """
+    return {
+        "status": "ok",
+        "message": "VoicePC Backend is running"
+    }
+
+
 class ConfigRequest(BaseModel):
     """配置请求"""
     key: str
