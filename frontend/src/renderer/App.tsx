@@ -27,8 +27,11 @@ function App() {
 
   const initApp = async () => {
     try {
-      // 检查后端健康
-      const health = await api.health();
+      // 检查后端健康（超时保护）
+      const health = await Promise.race([
+        api.health(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('health_timeout')), 4000)),
+      ]);
       console.log('✅ Backend health:', health);
 
       // 获取系统信息

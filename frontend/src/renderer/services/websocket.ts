@@ -13,9 +13,8 @@ export class WebSocketClient {
   private reconnectDelay = 2000;
 
   constructor(url?: string) {
-    const host = location.hostname;
     const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-    const defaultWs = `${protocol}://${host}:8000/api/chat/ws`;
+    const defaultWs = `${protocol}://127.0.0.1:8000/api/chat/ws`;
     const configured = (globalThis as any).__WS_URL__
       || (import.meta as any).env?.VITE_WS_URL
       || defaultWs;

@@ -5,7 +5,7 @@ import axios from 'axios';
 
 // 允许从环境变量或全局配置覆盖
 // 优先使用同源（避免跨域/代理问题），除非显式配置
-const defaultBase = `${location.protocol}//${location.hostname}:8000/api`;
+const defaultBase = `${location.protocol}//127.0.0.1:8000/api`;
 const API_BASE_URL = (globalThis as any).__API_BASE_URL__
   || (import.meta as any).env?.VITE_API_BASE_URL
   || defaultBase;
