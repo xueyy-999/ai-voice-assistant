@@ -56,8 +56,8 @@ VoicePC是一个基于大模型的智能语音电脑助手，让你可以用自�
 
 #### 1. 克隆项目
 ```bash
-git clone https://github.com/your-repo/voicepc.git
-cd voicepc
+git clone https://github.com/xueyy-999/ai-voice-assistant.git
+cd ai-voice-assistant
 ```
 
 #### 2. 后端安装

@@ -10,8 +10,13 @@ from app.utils.logger import logger
 class AudioProcessor:
     """音频处理器"""
     
+    # 性能优化：添加音频块大小配置
+    CHUNK_SIZE = 2048  # 优化：从4096降低到2048，减少延迟
+    MAX_BUFFER_SIZE = 1024 * 1024  # 1MB，防止内存溢出
+    
     def __init__(self):
         self.supported_formats = ['wav', 'mp3', 'pcm']
+        self.buffer_cache = {}  # 添加缓冲区缓存
     
     def validate_format(self, audio_format: str) -> bool:
         """验证音频格式"""
