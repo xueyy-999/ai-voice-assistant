@@ -64,14 +64,23 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# 配置CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# 配置CORS（开发环境放宽到本机任意端口）
+if settings.APP_ENV == "development":
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=r"https?://(localhost|127\\.0\\.0\\.1)(:\\d+)?$",
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # 注册路由
 app.include_router(voice.router, prefix="/api/voice", tags=["语音"])

@@ -151,9 +151,9 @@ async def websocket_endpoint(websocket: WebSocket):
                     "timestamp": int(time.time() * 1000)
                 }, websocket)
             
-            elif msg_type == "chat":
+            elif msg_type in ("chat", "text", "message"):
                 # 对话消息
-                user_message = msg_data.get("text", "")
+                user_message = msg_data.get("text") or msg_data.get("content") or msg_data if isinstance(msg_data, str) else ""
                 
                 # 推送"思考中"状态
                 await manager.send_message({
