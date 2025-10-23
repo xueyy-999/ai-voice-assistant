@@ -152,8 +152,8 @@ function App() {
                       if (e.key === 'Enter' && e.currentTarget.value.trim()) {
                         const text = e.currentTarget.value.trim();
                         wsClient.send({
-                          type: 'text',
-                          content: text,
+                          type: 'chat',
+                          data: { text },
                         });
                         e.currentTarget.value = '';
                       }
@@ -164,8 +164,8 @@ function App() {
                       const input = e.currentTarget.previousElementSibling as HTMLInputElement;
                       if (input && input.value.trim()) {
                         wsClient.send({
-                          type: 'text',
-                          content: input.value.trim(),
+                          type: 'chat',
+                          data: { text: input.value.trim() },
                         });
                         input.value = '';
                       }
