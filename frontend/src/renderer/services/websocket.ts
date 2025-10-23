@@ -7,6 +7,8 @@ type MessageHandler = (message: any) => void;
 export class WebSocketClient {
   private ws: WebSocket | null = null;
   private url: string;
+  private fallbackUrls: string[] = [];
+  private currentUrlIndex = 0;
   private handlers: Map<string, MessageHandler[]> = new Map();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = Number.MAX_SAFE_INTEGER; // 无限重连
@@ -14,11 +16,26 @@ export class WebSocketClient {
 
   constructor(url?: string) {
     const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-    const defaultWs = `${protocol}://127.0.0.1:8000/api/chat/ws`;
+    const defaultWs = `${protocol}://${location.hostname || '127.0.0.1'}:8000/api/chat/ws`;
     const configured = (globalThis as any).__WS_URL__
       || (import.meta as any).env?.VITE_WS_URL
       || defaultWs;
     this.url = url || configured;
+
+    // 构建回退地址（在 127.0.0.1 与 localhost 之间切换）
+    try {
+      const u = new URL(this.url);
+      const hosts = Array.from(new Set([
+        u.hostname,
+        '127.0.0.1',
+        'localhost',
+      ])).filter(Boolean);
+      this.fallbackUrls = hosts.map((h) => `${u.protocol}//${h}${u.port ? ':' + u.port : ''}${u.pathname}`);
+      this.currentUrlIndex = Math.max(0, this.fallbackUrls.indexOf(this.url));
+    } catch {
+      this.fallbackUrls = [this.url];
+      this.currentUrlIndex = 0;
+    }
   }
 
   public getUrl(): string {
@@ -33,6 +50,8 @@ export class WebSocketClient {
   connect(): Promise<void> {
     return new Promise((resolve) => {
       try {
+        // 使用当前候选地址进行连接
+        this.url = this.fallbackUrls[this.currentUrlIndex] || this.url;
         this.ws = new WebSocket(this.url);
 
         this.ws.onopen = () => {
@@ -55,16 +74,19 @@ export class WebSocketClient {
         this.ws.onerror = (error) => {
           console.error('❌ WebSocket error:', error);
           // 出错也尝试重连，不reject以便后续能够成功后resolve
+          this.rotateFallback();
           this.attemptReconnect();
         };
 
         this.ws.onclose = () => {
           console.log('👋 WebSocket disconnected');
           this.emit('ws_close');
+          this.rotateFallback();
           this.attemptReconnect();
         };
       } catch (error) {
         console.error('❌ WebSocket connect failed:', error);
+        this.rotateFallback();
         this.attemptReconnect();
       }
     });
@@ -126,6 +148,13 @@ export class WebSocketClient {
         // 忽略异常，继续由内部逻辑重连
       });
     }, this.reconnectDelay);
+  }
+
+  private rotateFallback() {
+    if (!this.fallbackUrls || this.fallbackUrls.length <= 1) return;
+    this.currentUrlIndex = (this.currentUrlIndex + 1) % this.fallbackUrls.length;
+    this.url = this.fallbackUrls[this.currentUrlIndex];
+    console.warn('🔁 Switching WS endpoint to:', this.url);
   }
 
   disconnect() {

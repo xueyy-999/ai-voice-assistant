@@ -9,7 +9,14 @@ import { api } from './services/api';
 
 function App() {
   const { isConnected, setConnected, setSystemInfo } = useAppStore();
-  const { currentSteps, setCurrentSteps, setCurrentStepIndex, clearSteps } = useChatStore();
+  const {
+    currentSteps,
+    setCurrentSteps,
+    setCurrentStepIndex,
+    clearSteps,
+    addMessage,
+    setThinking,
+  } = useChatStore();
   const [activeTab, setActiveTab] = useState<'chat' | 'flow'>('chat');
 
   useEffect(() => {
@@ -64,15 +71,54 @@ function App() {
         } else {
           clearSteps();
         }
+
+        // 追加助手回复
+        if (data.text) {
+          addMessage({ role: 'assistant', content: data.text });
+        }
       });
 
       wsClient.on('thinking', () => {
         console.log('🤔 AI thinking...');
         clearSteps();
+        setThinking(true);
+      });
+      wsClient.on('*', () => {
+        // 任意消息到达后，取消思考状态
+        setThinking(false);
       });
     } catch (error) {
       console.error('❌ Failed to initialize app:', error);
       setConnected(false);
+    }
+  };
+
+  const sendTextCommand = async (text: string) => {
+    // 先把用户消息落库
+    addMessage({ role: 'user', content: text });
+
+    if (wsClient.isConnected()) {
+      wsClient.send({ type: 'chat', data: { text } });
+      return;
+    }
+
+    // WebSocket未连接时走HTTP兜底
+    try {
+      setThinking(true);
+      const resp = await api.chat.send(text);
+      setThinking(false);
+
+      if (resp?.reply) {
+        addMessage({ role: 'assistant', content: resp.reply });
+      }
+      if (resp?.steps?.length) {
+        setCurrentSteps(resp.steps);
+      } else {
+        clearSteps();
+      }
+    } catch (e) {
+      setThinking(false);
+      addMessage({ role: 'system', content: '抱歉，处理失败了，请重试' });
     }
   };
 
@@ -162,10 +208,7 @@ function App() {
                     onKeyPress={(e) => {
                       if (e.key === 'Enter' && e.currentTarget.value.trim()) {
                         const text = e.currentTarget.value.trim();
-                        wsClient.send({
-                          type: 'chat',
-                          data: { text },
-                        });
+                        sendTextCommand(text);
                         e.currentTarget.value = '';
                       }
                     }}
@@ -174,10 +217,7 @@ function App() {
                     onClick={(e) => {
                       const input = e.currentTarget.previousElementSibling as HTMLInputElement;
                       if (input && input.value.trim()) {
-                        wsClient.send({
-                          type: 'chat',
-                          data: { text: input.value.trim() },
-                        });
+                        sendTextCommand(input.value.trim());
                         input.value = '';
                       }
                     }}
