@@ -27,7 +27,7 @@ apiClient.interceptors.response.use(
 
 export const api = {
   // 健康检查
-  health: () => apiClient.get('/health'),
+  health: () => apiClient.get('/system/health'),
 
   // 语音接口
   voice: {

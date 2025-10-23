@@ -82,13 +82,13 @@ export class WebSocketClient {
     }
   }
 
-  send(type: string, data: any) {
+  send(message: any) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({
-        type,
-        data,
-        timestamp: Date.now()
-      }));
+      // 如果message是对象，直接发送；如果是字符串格式的type和data，转换
+      const payload = typeof message === 'object' && message.type
+        ? message
+        : { type: 'message', data: message, timestamp: Date.now() };
+      this.ws.send(JSON.stringify(payload));
     } else {
       console.warn('WebSocket is not connected');
     }
@@ -98,7 +98,7 @@ export class WebSocketClient {
 
   private startHeartbeat() {
     this.heartbeatInterval = setInterval(() => {
-      this.send('ping', {});
+      this.send({ type: 'ping', data: {} });
     }, 30000); // 每30秒心跳
   }
 
