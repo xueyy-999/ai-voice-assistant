@@ -21,6 +21,10 @@ export class WebSocketClient {
     this.url = url || configured;
   }
 
+  public getUrl(): string {
+    return this.url;
+  }
+
   private emit(type: string, payload?: any) {
     const handlers = this.handlers.get(type) || [];
     handlers.forEach((handler) => handler(payload));

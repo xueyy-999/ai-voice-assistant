@@ -126,6 +126,10 @@ function App() {
               <span className="text-sm text-gray-600">
                 {isConnected ? '已连接' : '未连接'}
               </span>
+            {/* 调试用：显示WS地址 */}
+            <span className="text-xs text-gray-400 hidden sm:inline-block">
+              {wsClient.getUrl()}
+            </span>
             </div>
           </div>
         </div>
