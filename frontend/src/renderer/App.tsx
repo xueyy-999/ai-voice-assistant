@@ -97,10 +97,9 @@ function App() {
     // 先把用户消息落库
     addMessage({ role: 'user', content: text });
 
-    if (wsClient.isConnected()) {
-      wsClient.send({ type: 'chat', data: { text } });
-      return;
-    }
+    // 优先尝试WS，失败则走HTTP
+    const sent = wsClient.send({ type: 'chat', data: { text } });
+    if (sent) return;
 
     // WebSocket未连接时走HTTP兜底
     try {

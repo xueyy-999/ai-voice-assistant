@@ -98,15 +98,17 @@ export class WebSocketClient {
     }
   }
 
-  send(message: any) {
+  send(message: any): boolean {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       // 如果message是对象，直接发送；如果是字符串格式的type和data，转换
       const payload = typeof message === 'object' && message.type
         ? message
         : { type: 'message', data: message, timestamp: Date.now() };
       this.ws.send(JSON.stringify(payload));
+      return true;
     } else {
       console.warn('WebSocket is not connected');
+      return false;
     }
   }
 
