@@ -1,0 +1,29 @@
+# Flake8 配置 - Python代码质量检查
+[flake8]
+# 最大行长度
+max-line-length = 100
+
+# 排除目录
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    *.egg-info,
+    dist,
+    build
+
+# 忽略的错误码
+ignore =
+    E203,  # 冒号前的空格（与black冲突）
+    E501,  # 行太长（已通过max-line-length控制）
+    W503,  # 二元运算符前换行（与black冲突）
+    F401,  # 导入但未使用（__init__.py中常见）
+
+# 每个文件的最大复杂度
+max-complexity = 10
+
+# 显示错误上下文
+show-source = True
+statistics = True
+
