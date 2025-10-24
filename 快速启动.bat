@@ -27,7 +27,7 @@ echo ✅ Python 和 Node.js 已安装
 
 echo.
 echo [2/3] 启动后端服务...
-start "VoicePC Backend" cmd /k "cd backend && python app/main.py"
+start "VoicePC Backend" cmd /k "cd backend && python run_backend.py"
 
 timeout /t 3 /nobreak >nul
 
