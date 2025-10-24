@@ -64,12 +64,12 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# 配置CORS（开发环境放宽到本机任意端口）
+# 配置CORS（开发环境完全放开，确保本地调试无阻）
 if settings.APP_ENV == "development":
     app.add_middleware(
         CORSMiddleware,
-        allow_origin_regex=r"https?://(localhost|127\\.0\\.0\\.1)(:\\d+)?$",
-        allow_credentials=True,
+        allow_origins=["*"],  # 开发环境允许所有来源
+        allow_credentials=False,  # allow_origins=["*"]时必须关闭credentials
         allow_methods=["*"],
         allow_headers=["*"],
     )
