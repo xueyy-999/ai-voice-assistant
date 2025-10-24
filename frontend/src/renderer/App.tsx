@@ -94,6 +94,27 @@ function App() {
     // 先把用户消息落库
     addMessage({ role: 'user', content: text });
 
+    // 临时强制HTTP，确保稳定（调试完再改回WS）
+    try {
+      setThinking(true);
+      const resp = await api.chat.send(text);
+      setThinking(false);
+      if (resp?.reply) {
+        addMessage({ role: 'assistant', content: resp.reply });
+      }
+      if (resp?.steps?.length) {
+        setCurrentSteps(resp.steps);
+      } else {
+        clearSteps();
+      }
+      return;
+    } catch (e) {
+      console.error('HTTP发送失败:', e);
+      setThinking(false);
+      addMessage({ role: 'system', content: '抱歉，处理失败了，请重试' });
+      return;
+    }
+
     // 优先尝试WS，若短时间内未收到任何WS反馈，则自动HTTP兜底
     let wsAcknowledged = false;
     const onThinking = () => { wsAcknowledged = true; };
