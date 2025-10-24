@@ -66,6 +66,10 @@ async def send_message(request: SendMessageRequest):
         reply = result["output"]
         steps = result["intermediate_steps"]
         
+        # 如果没有回复内容，使用默认友好回复
+        if not reply or reply.strip() == "":
+            reply = "收到了，请稍等..."
+        
         logger.info(f"💬 AI回复: {reply}")
         
         # 保存AI回复

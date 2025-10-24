@@ -35,17 +35,17 @@ class SceneManagerTool(BaseTool):
         return {
             "prepare_work": {
                 "name": "准备工作",
-                "description": "准备开始工作：打开开发工具、浏览器和音乐",
+                "description": "准备开始工作：打开记事本、浏览器和音乐",
                 "steps": [
                     {
                         "tool": "app_control",
-                        "params": {"action": "open", "app_name": "VS Code"},
-                        "description": "打开VS Code"
+                        "params": {"action": "open", "app_name": "记事本"},
+                        "description": "打开记事本"
                     },
                     {
                         "tool": "browser_control",
-                        "params": {"action": "open", "url": "https://github.com"},
-                        "description": "打开GitHub"
+                        "params": {"action": "open", "url": "https://www.baidu.com"},
+                        "description": "打开百度"
                     },
                     {
                         "tool": "media_control",

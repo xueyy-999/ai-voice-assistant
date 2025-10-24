@@ -97,13 +97,25 @@ class MediaControlTool(BaseTool):
     
     async def _play_music(self, music_query: str) -> ToolResult:
         """播放音乐"""
-        # 通过浏览器打开音乐网站搜索
-        music_url = f"https://music.163.com/#/search/m/?s={music_query}" if music_query else "https://music.163.com"
+        from app.adapters.windows_api import windows_api as win_api
         
+        # 优先尝试打开网易云APP
+        app_path = win_api.find_app_path("网易云音乐")
+        if app_path and os.path.exists(app_path.replace('%USERNAME%', os.environ.get('USERNAME', ''))):
+            pid = win_api.start_process(app_path)
+            if pid:
+                return ToolResult(
+                    success=True,
+                    message=f"已打开网易云音乐APP{f'（搜索: {music_query}）' if music_query else ''}",
+                    data={"app": "cloudmusic", "pid": pid}
+                )
+        
+        # 如果APP打不开，降级到网页版
+        music_url = f"https://music.163.com/#/search/m/?s={music_query}" if music_query else "https://music.163.com"
         if windows_api.open_url(music_url):
             return ToolResult(
                 success=True,
-                message=f"已打开网易云音乐{f'搜索: {music_query}' if music_query else ''}",
+                message=f"已打开网易云音乐网页版{f'（搜索: {music_query}）' if music_query else ''}",
                 data={"url": music_url}
             )
         else:

@@ -29,6 +29,9 @@ class WindowsAPI:
             "notepad": "notepad.exe",
             "计算器": "calc.exe",
             "calc": "calc.exe",
+            "网易云音乐": r"C:\Program Files (x86)\Netease\CloudMusic\cloudmusic.exe",
+            "网易云": r"C:\Program Files (x86)\Netease\CloudMusic\cloudmusic.exe",
+            "cloudmusic": r"C:\Program Files (x86)\Netease\CloudMusic\cloudmusic.exe",
         }
     
     def find_app_path(self, app_name: str) -> Optional[str]:

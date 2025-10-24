@@ -62,15 +62,7 @@ export const ChatPanel: React.FC = () => {
                     }
                   `}
                 >
-                  <p className="text-sm break-words">{message.content}</p>
-
-                  {/* 显示意图信息 */}
-                  {message.intent && (
-                    <div className="mt-2 pt-2 border-t border-white/20 text-xs opacity-70">
-                      <span className="font-semibold">意图:</span>{' '}
-                      {message.intent.type}/{message.intent.action}
-                    </div>
-                  )}
+                  <p className="text-sm break-words whitespace-pre-wrap">{message.content}</p>
 
                   <div className="text-xs opacity-70 mt-1">
                     {new Date(message.timestamp).toLocaleTimeString()}
