@@ -1,7 +1,7 @@
 """
 配置管理
 """
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 import os
 
@@ -39,9 +39,11 @@ class Settings(BaseSettings):
         "http://localhost:5173"
     ]
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"  # 忽略额外字段，避免 Pydantic v2 验证错误
+    )
 
 
 # 创建全局配置实例
