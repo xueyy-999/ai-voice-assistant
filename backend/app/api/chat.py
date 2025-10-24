@@ -165,7 +165,13 @@ async def websocket_endpoint(websocket: WebSocket):
             
             elif msg_type in ("chat", "text", "message"):
                 # 对话消息
-                user_message = msg_data.get("text") or msg_data.get("content") or msg_data if isinstance(msg_data, str) else ""
+                user_message = msg_data.get("text") if isinstance(msg_data, dict) else ""
+                if not user_message:
+                    # 兼容纯文本或不同字段名
+                    if isinstance(msg_data, str):
+                        user_message = msg_data
+                    else:
+                        user_message = message.get("text") or message.get("content") or ""
                 
                 # 推送"思考中"状态
                 await manager.send_message({
@@ -187,7 +193,10 @@ async def websocket_endpoint(websocket: WebSocket):
                     for msg in context.get("history", [])[-5:]
                 ]
                 
-                result = await agent_service.execute(user_message, chat_history)
+                if user_message:
+                    result = await agent_service.execute(user_message, chat_history)
+                else:
+                    result = {"output": "请提供有效的文本指令", "intermediate_steps": [], "success": False}
                 
                 # 保存AI回复
                 await context_manager.add_message(session_id, "assistant", result["output"])

@@ -97,9 +97,40 @@ function App() {
     // 先把用户消息落库
     addMessage({ role: 'user', content: text });
 
-    // 优先尝试WS，失败则走HTTP
+    // 优先尝试WS，若短时间内未收到任何WS反馈，则自动HTTP兜底
+    let wsAcknowledged = false;
+    const onThinking = () => { wsAcknowledged = true; };
+    const onChatResp = () => { wsAcknowledged = true; };
+    wsClient.on('thinking', onThinking);
+    wsClient.on('chat_response', onChatResp);
+
     const sent = wsClient.send({ type: 'chat', data: { text } });
-    if (sent) return;
+
+    if (sent) {
+      setTimeout(async () => {
+        // 未获WS回执，走HTTP兜底
+        if (!wsAcknowledged) {
+          // 清理监听，避免重复触发
+          wsClient.off('thinking', onThinking);
+          wsClient.off('chat_response', onChatResp);
+          try {
+            setThinking(true);
+            const resp = await api.chat.send(text);
+            setThinking(false);
+            if (resp?.reply) addMessage({ role: 'assistant', content: resp.reply });
+            if (resp?.steps?.length) setCurrentSteps(resp.steps); else clearSteps();
+          } catch (e) {
+            setThinking(false);
+            addMessage({ role: 'system', content: '抱歉，处理失败了，请重试' });
+          }
+        } else {
+          // 已收到WS反馈，正常流程，移除一次性监听
+          wsClient.off('thinking', onThinking);
+          wsClient.off('chat_response', onChatResp);
+        }
+      }, 1200);
+      return;
+    }
 
     // WebSocket未连接时走HTTP兜底
     try {
