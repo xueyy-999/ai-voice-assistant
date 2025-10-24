@@ -96,11 +96,17 @@ function App() {
 
     // 临时强制HTTP，确保稳定（调试完再改回WS）
     try {
+      console.log('[DEBUG] 发送HTTP请求:', text);
       setThinking(true);
       const resp = await api.chat.send(text);
+      console.log('[DEBUG] 收到HTTP响应:', resp);
       setThinking(false);
       if (resp?.reply) {
+        console.log('[DEBUG] 添加回复到UI:', resp.reply);
         addMessage({ role: 'assistant', content: resp.reply });
+      } else {
+        console.warn('[DEBUG] 响应无reply字段:', resp);
+        addMessage({ role: 'system', content: '收到空回复，请重试' });
       }
       if (resp?.steps?.length) {
         setCurrentSteps(resp.steps);
@@ -108,10 +114,14 @@ function App() {
         clearSteps();
       }
       return;
-    } catch (e) {
-      console.error('HTTP发送失败:', e);
+    } catch (e: any) {
+      console.error('[DEBUG] HTTP发送失败详情:', {
+        message: e.message,
+        response: e.response,
+        config: e.config
+      });
       setThinking(false);
-      addMessage({ role: 'system', content: '抱歉，处理失败了，请重试' });
+      addMessage({ role: 'system', content: `请求失败: ${e.message || '未知错误'}` });
       return;
     }
 
