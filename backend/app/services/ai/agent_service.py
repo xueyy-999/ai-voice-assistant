@@ -172,6 +172,16 @@ class AgentService:
         
         # 解析意图
         intent = await intent_parser.parse(user_input)
+
+        # 简单寒暄兜底（无LLM时支持“你好”等）
+        if intent.type == "unknown":
+            text_norm = (user_input or "").strip().lower()
+            if any(k in text_norm for k in ["你好", "hi", "hello", "在吗", "您好"]):
+                return {
+                    "output": "你好，我在。可以试试：‘打开记事本’、‘搜索Python教程’、‘音量调到50’。",
+                    "intermediate_steps": [],
+                    "success": True
+                }
         
         # 映射意图到工具
         tool_mapping = {
