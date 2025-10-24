@@ -202,8 +202,11 @@ async def websocket_endpoint(websocket: WebSocket):
                 else:
                     result = {"output": "请提供有效的文本指令", "intermediate_steps": [], "success": False}
                 
+                # 规范回复文本（避免空字符串导致前端无显示）
+                reply_text = result.get("output") or "收到了，请稍等..."
+
                 # 保存AI回复
-                await context_manager.add_message(session_id, "assistant", result["output"])
+                await context_manager.add_message(session_id, "assistant", reply_text)
                 
                 # 推送执行步骤
                 for i, step in enumerate(result["intermediate_steps"]):
@@ -221,7 +224,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 await manager.send_message({
                     "type": "chat_response",
                     "data": {
-                        "text": result["output"],
+                        "text": reply_text,
                         "steps": result["intermediate_steps"],
                         "success": result["success"]
                     },

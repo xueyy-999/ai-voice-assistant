@@ -1,6 +1,7 @@
 """
 多媒体控制工具
 """
+import os
 from app.tools.base_tool import BaseTool, ToolResult
 from app.adapters.windows_api import windows_api
 from app.utils.logger import logger
