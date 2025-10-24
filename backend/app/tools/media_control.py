@@ -18,7 +18,7 @@ class MediaControlTool(BaseTool):
             "properties": {
                 "action": {
                     "type": "string",
-                    "enum": ["volume", "play_music", "pause", "screenshot"],
+                    "enum": ["volume", "play_music", "play", "pause", "screenshot"],
                     "description": "操作类型"
                 },
                 "level": {
@@ -28,19 +28,25 @@ class MediaControlTool(BaseTool):
                 "music_query": {
                     "type": "string",
                     "description": "音乐搜索关键词，用于play_music操作"
+                },
+                "media_type": {
+                    "type": "string",
+                    "description": "媒体类型（音乐、视频等）"
                 }
             },
             "required": ["action"]
         }
     
     async def execute(self, action: str, level: int = None, 
-                     music_query: str = None, **kwargs) -> ToolResult:
+                     music_query: str = None, media_type: str = None, **kwargs) -> ToolResult:
         """执行多媒体操作"""
         try:
             if action == "volume":
                 return await self._set_volume(level)
-            elif action == "play_music":
-                return await self._play_music(music_query)
+            elif action in ["play_music", "play"]:
+                # "播放音乐"或"play"都支持
+                query = music_query or media_type or "音乐"
+                return await self._play_music(query)
             elif action == "pause":
                 return await self._pause_media()
             elif action == "screenshot":

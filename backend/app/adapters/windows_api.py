@@ -68,16 +68,30 @@ class WindowsAPI:
             进程ID，失败返回None
         """
         try:
-            cmd = [app_path]
-            if args:
-                cmd.extend(args)
-            
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                creationflags=subprocess.CREATE_NEW_CONSOLE
-            )
+            # 对于系统命令（如 notepad.exe, calc.exe），使用 shell=True
+            if app_path.lower() in ['notepad.exe', 'calc.exe', 'mspaint.exe', 'explorer.exe']:
+                cmd = app_path
+                if args:
+                    cmd = f"{app_path} {' '.join(args)}"
+                
+                process = subprocess.Popen(
+                    cmd,
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+            else:
+                # 对于其他应用，使用正常方式启动
+                cmd = [app_path]
+                if args:
+                    cmd.extend(args)
+                
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    creationflags=subprocess.CREATE_NEW_CONSOLE
+                )
             
             logger.info(f"✅ 启动进程: {app_path} (PID: {process.pid})")
             return process.pid
