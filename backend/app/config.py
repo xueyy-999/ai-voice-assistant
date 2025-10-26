@@ -4,6 +4,7 @@
 from pydantic import BaseSettings
 from typing import List
 import os
+from dotenv import load_dotenv
 
 
 class Settings(BaseSettings):
@@ -46,7 +47,20 @@ class Settings(BaseSettings):
         extra = "ignore"  # 忽略额外字段
 
 
-# 创建全局配置实例
+# 兼容性加载 .env（同时兼容 项目根/.env 与 backend/.env）
+try:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    backend_dir = os.path.abspath(os.path.join(current_dir, ".."))
+    project_root = os.path.abspath(os.path.join(backend_dir, ".."))
+
+    # 先加载项目根 .env，再加载 backend/.env（后者优先级更高）
+    load_dotenv(os.path.join(project_root, ".env"), override=False)
+    load_dotenv(os.path.join(backend_dir, ".env"), override=False)
+except Exception:
+    # 静默失败，不影响后续 BaseSettings 读取
+    pass
+
+# 创建全局配置实例（会读取环境变量/已加载的 .env 值）
 settings = Settings()
 
 # 确保必要的目录存在
