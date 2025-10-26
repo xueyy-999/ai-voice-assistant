@@ -9,6 +9,13 @@ API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
 BASE_URL = os.getenv("DEEPSEEK_BASE_URL", "")
 MODEL = os.getenv("DEEPSEEK_MODEL", "qwen-turbo")
 
+def norm(u: str) -> str:
+    if not u:
+        return u
+    u = u.strip().replace('，', ',').replace(' ', '').replace(',', '.')
+    return u
+
+BASE_URL = norm(BASE_URL)
 print("检查模型接口...")
 print(f"base_url={BASE_URL} model={MODEL} key={API_KEY[:6]}***")
 

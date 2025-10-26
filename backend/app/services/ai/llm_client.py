@@ -19,15 +19,26 @@ class LLMClient:
     def _init_client(self):
         """初始化客户端"""
         try:
+            def _normalize_url(url: str) -> str:
+                if not url:
+                    return url
+                u = url.strip()
+                # 修正常见粘贴错误：中文逗号/英文逗号/空格
+                u = u.replace('，', ',').replace(' ', '')
+                u = u.replace(',', '.')
+                # 去掉重复的斜杠
+                while '//' in u[8:]:
+                    u = u.replace('//', '/').replace(':/', '://')
+                return u
+
+            base_url = _normalize_url(settings.DEEPSEEK_BASE_URL)
             if settings.DEEPSEEK_API_KEY:
                 self.client = AsyncOpenAI(
                     api_key=settings.DEEPSEEK_API_KEY,
-                    base_url=settings.DEEPSEEK_BASE_URL
+                    base_url=base_url
                 )
                 safe_key = settings.DEEPSEEK_API_KEY[:6] + "***"
-                logger.info(
-                    f"✅ LLM初始化成功 provider=ark/dashscope base_url={settings.DEEPSEEK_BASE_URL} model={settings.DEEPSEEK_MODEL} key={safe_key}"
-                )
+                logger.info(f"✅ LLM初始化成功 provider=ark base_url={base_url} model={settings.DEEPSEEK_MODEL} key={safe_key}")
             else:
                 logger.warning("⚠️ 未配置DEEPSEEK_API_KEY，LLM功能将使用模拟模式")
         except Exception as e:
@@ -148,7 +159,8 @@ class LLMClient:
         """直接通过HTTP调用 OpenAI兼容接口，避免SDK兼容问题。"""
         if not settings.DEEPSEEK_API_KEY or not settings.DEEPSEEK_BASE_URL:
             return None
-        url = f"{settings.DEEPSEEK_BASE_URL.rstrip('/')}/chat/completions"
+        base_url = settings.DEEPSEEK_BASE_URL.strip().replace('，', ',').replace(' ', '').replace(',', '.')
+        url = f"{base_url.rstrip('/')}/chat/completions"
         headers = {
             "Authorization": f"Bearer {settings.DEEPSEEK_API_KEY}",
             "Content-Type": "application/json",
