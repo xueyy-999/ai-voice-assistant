@@ -40,17 +40,17 @@ echo ========================================
 echo ✅ VoicePC 正在启动...
 echo.
 echo 后端服务: http://localhost:8000
-echo 前端应用: http://localhost:5173
+echo 前端应用: http://localhost:5174
 echo.
 echo 请等待约 10-30 秒让服务完全启动
 echo ========================================
 echo.
 
 timeout /t 5 /nobreak >nul
-start http://localhost:5173
+start http://localhost:5174
 
 echo 浏览器已打开，如未自动打开请手动访问:
-echo http://localhost:5173
+echo http://localhost:5174
 echo.
 echo 按任意键关闭此窗口...
 pause >nul

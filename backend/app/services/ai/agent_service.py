@@ -173,12 +173,33 @@ class AgentService:
         # 解析意图
         intent = await intent_parser.parse(user_input)
 
-        # 简单寒暄兜底（无LLM时支持“你好”等）
+        # 简单寒暄兜底（无LLM时支持"你好"等）
         if intent.type == "unknown":
             text_norm = (user_input or "").strip().lower()
             if any(k in text_norm for k in ["你好", "hi", "hello", "在吗", "您好"]):
                 return {
-                    "output": "你好，我在。可以试试：‘打开记事本’、‘搜索Python教程’、‘音量调到50’。",
+                    "output": "你好，我在。可以试试：'打开记事本'、'搜索Python教程'、'音量调到50'。",
+                    "intermediate_steps": [],
+                    "success": True
+                }
+        
+        # 处理系统查询（时间、日期等）
+        if intent.type == "system_query":
+            from datetime import datetime
+            now = datetime.now()
+            if intent.action == "get_time":
+                time_str = now.strftime("%H:%M")
+                return {
+                    "output": f"现在是 {time_str}",
+                    "intermediate_steps": [],
+                    "success": True
+                }
+            elif intent.action == "get_date":
+                weekday = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+                date_str = now.strftime("%Y年%m月%d日")
+                week_str = weekday[now.weekday()]
+                return {
+                    "output": f"今天是 {date_str} {week_str}",
                     "intermediate_steps": [],
                     "success": True
                 }

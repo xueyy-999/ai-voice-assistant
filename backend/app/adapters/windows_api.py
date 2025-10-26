@@ -72,8 +72,8 @@ class WindowsAPI:
         """
         try:
             # 对于系统命令（如 notepad.exe, calc.exe），使用 shell=True
-            if app_path.lower() in ['notepad.exe', 'calc.exe', 'mspaint.exe', 'explorer.exe']:
-                cmd = app_path
+            if app_path.lower() in ['notepad.exe', 'calc.exe', 'mspaint.exe', 'explorer.exe', '记事本.exe']:
+                cmd = app_path.replace('记事本.exe', 'notepad.exe')
                 if args:
                     cmd = f"{app_path} {' '.join(args)}"
                 

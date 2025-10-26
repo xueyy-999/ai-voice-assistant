@@ -9,10 +9,10 @@ import os
 class Settings(BaseSettings):
     """应用配置"""
     
-    # DeepSeek配置
-    DEEPSEEK_API_KEY: str = ""
-    DEEPSEEK_BASE_URL: str = "https://api.deepseek.com/v1"
-    DEEPSEEK_MODEL: str = "deepseek-chat"
+    # DeepSeek配置（阿里云通义千问）
+    DEEPSEEK_API_KEY: str = "sk-b9ea34c8c66f40369142f29a37a506a1"
+    DEEPSEEK_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    DEEPSEEK_MODEL: str = "qwen-turbo"
     
     # 阿里云语音配置
     ALI_APPKEY: str = ""

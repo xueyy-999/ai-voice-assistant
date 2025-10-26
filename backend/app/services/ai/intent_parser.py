@@ -86,6 +86,17 @@ class IntentParser:
                     "工作模式": "work_mode",
                     "学习模式": "study_mode"
                 }
+            },
+            "system_query": {
+                "keywords": ["几点", "时间", "日期", "今天", "现在", "星期"],
+                "actions": {
+                    "几点": "get_time",
+                    "时间": "get_time",
+                    "日期": "get_date",
+                    "今天": "get_date",
+                    "现在": "get_time",
+                    "星期": "get_date"
+                }
             }
         }
     
