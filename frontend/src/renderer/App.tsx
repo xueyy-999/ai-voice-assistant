@@ -181,7 +181,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       {/* 顶部状态栏 */}
       <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
@@ -240,10 +240,10 @@ function App() {
       </header>
 
       {/* 主内容区 */}
-      <main className="container mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-200px)]">
+      <main className="container mx-auto px-6 py-8 flex-1 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full">
           {/* 左侧：动态面板 */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 min-h-0">
             {activeTab === 'chat' ? (
               <ChatPanel />
             ) : (

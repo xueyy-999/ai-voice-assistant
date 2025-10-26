@@ -14,7 +14,7 @@ export const ChatPanel: React.FC = () => {
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-2xl shadow-lg p-6">
+    <div className="flex flex-col h-full min-h-0 bg-white rounded-2xl shadow-lg p-6">
       {/* 标题 */}
       <div className="mb-4">
         <h2 className="text-2xl font-bold text-gray-800">💬 对话</h2>
@@ -22,7 +22,7 @@ export const ChatPanel: React.FC = () => {
       </div>
 
       {/* 消息列表 */}
-      <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-4 mb-4">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400">
             <svg

@@ -5,6 +5,7 @@ from typing import Optional, List, Dict, Any
 from openai import AsyncOpenAI
 from app.config import settings
 from app.utils.logger import logger
+import aiohttp
 
 
 class LLMClient:
@@ -23,16 +24,20 @@ class LLMClient:
                     api_key=settings.DEEPSEEK_API_KEY,
                     base_url=settings.DEEPSEEK_BASE_URL
                 )
-                logger.info("✅ DeepSeek客户端初始化成功")
+                safe_key = settings.DEEPSEEK_API_KEY[:6] + "***"
+                logger.info(
+                    f"✅ LLM初始化成功 provider=ark/dashscope base_url={settings.DEEPSEEK_BASE_URL} model={settings.DEEPSEEK_MODEL} key={safe_key}"
+                )
             else:
                 logger.warning("⚠️ 未配置DEEPSEEK_API_KEY，LLM功能将使用模拟模式")
         except Exception as e:
             logger.error(f"LLM客户端初始化失败: {e}")
+            self.client = None
     
-    async def chat(self, 
-                   messages: List[Dict[str, str]], 
-                   temperature: float = 0.7,
-                   max_tokens: int = 2000) -> Optional[str]:
+    async def chat_with_messages(self,
+                                 messages: List[Dict[str, str]],
+                                 temperature: float = 0.7,
+                                 max_tokens: int = 2000) -> Optional[str]:
         """
         对话接口
         
@@ -46,7 +51,10 @@ class LLMClient:
         """
         try:
             if not self.client:
-                # 降级：使用规则引擎
+                # 没有SDK客户端，尝试HTTP直连
+                http_reply = await self._chat_via_http(messages, temperature, max_tokens)
+                if http_reply:
+                    return http_reply
                 return await self._chat_fallback(messages)
             
             response = await self.client.chat.completions.create(
@@ -63,6 +71,10 @@ class LLMClient:
             
         except Exception as e:
             logger.error(f"LLM调用失败: {e}")
+            # SDK失败时，尝试HTTP直连
+            http_reply = await self._chat_via_http(messages, temperature, max_tokens)
+            if http_reply:
+                return http_reply
             return await self._chat_fallback(messages)
     
     async def chat_with_functions(self,
@@ -131,10 +143,49 @@ class LLMClient:
             return "好的，我将为您准备工作环境：打开开发工具、浏览器和播放背景音乐。"
         else:
             return "我理解了，让我来帮您处理。"
+
+    async def _chat_via_http(self, messages: List[Dict[str, str]], temperature: float, max_tokens: int) -> Optional[str]:
+        """直接通过HTTP调用 OpenAI兼容接口，避免SDK兼容问题。"""
+        if not settings.DEEPSEEK_API_KEY or not settings.DEEPSEEK_BASE_URL:
+            return None
+        url = f"{settings.DEEPSEEK_BASE_URL.rstrip('/')}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {settings.DEEPSEEK_API_KEY}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": settings.DEEPSEEK_MODEL,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        try:
+            timeout = aiohttp.ClientTimeout(total=30)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.post(url, headers=headers, json=payload) as resp:
+                    text = await resp.text()
+                    if resp.status == 200:
+                        data = await resp.json()
+                        reply = data["choices"][0]["message"]["content"]
+                        logger.info("✅ HTTP直连LLM成功")
+                        return reply
+                    logger.error(f"LLM HTTP错误 {resp.status}: {text}")
+                    return None
+        except Exception as e:
+            logger.error(f"LLM HTTP直连失败: {e}")
+            return None
     
     def is_available(self) -> bool:
         """检查LLM是否可用"""
         return self.client is not None
+    
+    async def chat(self, user_input: str) -> str:
+        """简单的聊天接口"""
+        messages = [
+            {"role": "system", "content": "你是VoicePC智能助手，可以帮助用户控制电脑和回答问题。"},
+            {"role": "user", "content": user_input}
+        ]
+        return await self.chat_with_messages(messages)
 
 
 # 全局实例

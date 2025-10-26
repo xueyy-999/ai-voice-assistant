@@ -1,7 +1,7 @@
 """
 配置管理
 """
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import BaseSettings
 from typing import List
 import os
 
@@ -9,8 +9,9 @@ import os
 class Settings(BaseSettings):
     """应用配置"""
     
-    # DeepSeek配置（阿里云通义千问）
-    DEEPSEEK_API_KEY: str = "sk-b9ea34c8c66f40369142f29a37a506a1"
+    # DeepSeek/通义千问（DashScope OpenAI兼容）
+    # 从 .env 读取，默认留空，避免使用无效占位Key导致降级
+    DEEPSEEK_API_KEY: str = ""
     DEEPSEEK_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
     DEEPSEEK_MODEL: str = "qwen-turbo"
     
@@ -39,11 +40,10 @@ class Settings(BaseSettings):
         "http://localhost:5173"
     ]
     
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore"  # 忽略额外字段，避免 Pydantic v2 验证错误
-    )
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+        extra = "ignore"  # 忽略额外字段
 
 
 # 创建全局配置实例

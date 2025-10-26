@@ -51,6 +51,18 @@ class WindowsAPI:
             path = os.path.expandvars(self.common_apps[app_name_lower])
             if os.path.exists(path):
                 return path
+
+        # 常见安装路径补充（尤其是 32 位/64 位差异）
+        if app_name_lower in ["微信", "wechat"]:
+            pf = os.environ.get("ProgramFiles", r"C:\\Program Files")
+            pf86 = os.environ.get("ProgramFiles(x86)", r"C:\\Program Files (x86)")
+            candidates = [
+                os.path.join(pf, "Tencent", "WeChat", "WeChat.exe"),
+                os.path.join(pf86, "Tencent", "WeChat", "WeChat.exe"),
+            ]
+            for c in candidates:
+                if os.path.exists(c):
+                    return c
         
         # 尝试直接作为命令
         if app_name_lower.endswith('.exe'):
